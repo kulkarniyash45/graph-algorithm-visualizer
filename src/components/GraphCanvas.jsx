@@ -18,8 +18,30 @@ export default function GraphCanvas() {
         (edge.source === connection.source && edge.target === connection.target)
         || (edge.source === connection.target && edge.target === connection.source)
       ));
-      return duplicate ? currentEdges : addEdge(connection, currentEdges);
+      return duplicate ? currentEdges : addEdge({
+        ...connection,
+        data: { weight: 1 },
+        label: '1',
+      }, currentEdges);
     });
+  }, [setEdges]);
+
+  const onEdgeDoubleClick = useCallback((event, edge) => {
+    event.stopPropagation();
+    const input = window.prompt('Enter edge weight:', String(edge.data.weight));
+    if (input === null) return;
+
+    const weight = Number(input.trim());
+    if (input.trim() === '' || !Number.isFinite(weight)) {
+      window.alert('Enter a finite numeric weight. The weight has not been changed.');
+      return;
+    }
+
+    setEdges((currentEdges) => currentEdges.map((currentEdge) => (
+      currentEdge.id === edge.id
+        ? { ...currentEdge, data: { ...currentEdge.data, weight }, label: String(weight) }
+        : currentEdge
+    )));
   }, [setEdges]);
 
   const onCanvasDoubleClick = useCallback((event) => {
@@ -56,6 +78,7 @@ export default function GraphCanvas() {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
+            onEdgeDoubleClick={onEdgeDoubleClick}
             onInit={(instance) => { flowInstance.current = instance; }}
             nodeOrigin={[0.5, 0.5]}
             deleteKeyCode="Delete"
