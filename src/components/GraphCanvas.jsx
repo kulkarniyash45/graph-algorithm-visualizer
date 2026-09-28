@@ -1,11 +1,12 @@
 ﻿import { useCallback } from 'react';
-import { useRef } from 'react';
-import { ReactFlow, Background, addEdge, useNodesState, useEdgesState } from '@xyflow/react';
+import { useRef, useState } from 'react';
+import { ReactFlow, Background, MarkerType, addEdge, useNodesState, useEdgesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 export default function GraphCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [directed, setDirected] = useState(false);
   const flowInstance = useRef(null);
   const nextNodeNumber = useRef(0);
 
@@ -13,10 +14,10 @@ export default function GraphCanvas() {
     if (!connection.source || !connection.target || connection.source === connection.target) return;
 
     setEdges((currentEdges) => {
-      // Keep a single edge per node pair, regardless of which handle starts it.
+      // Reverse connections are distinct only in directed mode.
       const duplicate = currentEdges.some((edge) => (
         (edge.source === connection.source && edge.target === connection.target)
-        || (edge.source === connection.target && edge.target === connection.source)
+        || (!directed && edge.source === connection.target && edge.target === connection.source)
       ));
       return duplicate ? currentEdges : addEdge({
         ...connection,
@@ -24,7 +25,7 @@ export default function GraphCanvas() {
         label: '1',
       }, currentEdges);
     });
-  }, [setEdges]);
+  }, [setEdges, directed]);
 
   const onEdgeDoubleClick = useCallback((event, edge) => {
     event.stopPropagation();
@@ -70,11 +71,27 @@ export default function GraphCanvas() {
           <span>{edges.length} edges</span>
         </div>
       </div>
+      <div role="group" aria-label="Graph mode" className="flex shrink-0 gap-1 border-b border-slate-100 px-5 py-2">
+        {[false, true].map((mode) => (
+          <button
+            key={String(mode)}
+            type="button"
+            aria-pressed={directed === mode}
+            onClick={() => setDirected(mode)}
+            className={`rounded-md px-3 py-1.5 text-xs font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${directed === mode ? 'bg-indigo-50 text-indigo-700' : 'text-slate-500 hover:bg-slate-50'}`}
+          >
+            {mode ? 'Directed' : 'Undirected'}
+          </button>
+        ))}
+      </div>
       <div className="relative min-h-0 flex-1 bg-slate-50/50">
         <div className="absolute inset-0" onDoubleClick={onCanvasDoubleClick}>
           <ReactFlow
             nodes={nodes}
-            edges={edges}
+            edges={edges.map((edge) => ({
+              ...edge,
+              markerEnd: directed ? { type: MarkerType.ArrowClosed } : undefined,
+            }))}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
