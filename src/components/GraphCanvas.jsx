@@ -1,13 +1,26 @@
 ﻿import { useCallback } from 'react';
 import { useRef } from 'react';
-import { ReactFlow, Background, useNodesState, useEdgesState } from '@xyflow/react';
+import { ReactFlow, Background, addEdge, useNodesState, useEdgesState } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 export default function GraphCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, , onEdgesChange] = useEdgesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const flowInstance = useRef(null);
   const nextNodeNumber = useRef(0);
+
+  const onConnect = useCallback((connection) => {
+    if (!connection.source || !connection.target || connection.source === connection.target) return;
+
+    setEdges((currentEdges) => {
+      // Keep a single edge per node pair, regardless of which handle starts it.
+      const duplicate = currentEdges.some((edge) => (
+        (edge.source === connection.source && edge.target === connection.target)
+        || (edge.source === connection.target && edge.target === connection.source)
+      ));
+      return duplicate ? currentEdges : addEdge(connection, currentEdges);
+    });
+  }, [setEdges]);
 
   const onCanvasDoubleClick = useCallback((event) => {
     if (!event.target.classList.contains('react-flow__pane') || !flowInstance.current) return;
@@ -42,12 +55,13 @@ export default function GraphCanvas() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
             onInit={(instance) => { flowInstance.current = instance; }}
             nodeOrigin={[0.5, 0.5]}
             deleteKeyCode="Delete"
             zoomOnDoubleClick={false}
             nodesDraggable
-            nodesConnectable={false}
+            nodesConnectable
             fitView
           >
             <Background />
