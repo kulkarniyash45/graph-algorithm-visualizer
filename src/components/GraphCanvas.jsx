@@ -4,8 +4,8 @@ import { ReactFlow, Background, MarkerType, addEdge, useNodesState, useEdgesStat
 import '@xyflow/react/dist/style.css';
 
 export default function GraphCanvas({ algorithmId, onRun, onGraphChange, visualization, error }) {
-  const traversalEnabled = algorithmId === 'bfs' || algorithmId === 'dfs' || algorithmId === 'dijkstra' || algorithmId === 'bellman-ford' || algorithmId === 'floyd-warshall';
-  const runLabel = algorithmId === 'floyd-warshall' ? 'Run Floyd-Warshall' : algorithmId === 'bellman-ford' ? 'Run Bellman-Ford' : algorithmId === 'dijkstra' ? 'Run Dijkstra' : algorithmId === 'dfs' ? 'Run DFS' : 'Run BFS';
+  const traversalEnabled = algorithmId === 'bfs' || algorithmId === 'dfs' || algorithmId === 'dijkstra' || algorithmId === 'bellman-ford' || algorithmId === 'floyd-warshall' || algorithmId === 'prim';
+  const runLabel = algorithmId === 'prim' ? 'Run Prim' : algorithmId === 'floyd-warshall' ? 'Run Floyd-Warshall' : algorithmId === 'bellman-ford' ? 'Run Bellman-Ford' : algorithmId === 'dijkstra' ? 'Run Dijkstra' : algorithmId === 'dfs' ? 'Run DFS' : 'Run BFS';
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [directed, setDirected] = useState(false);
@@ -131,7 +131,10 @@ export default function GraphCanvas({ algorithmId, onRun, onGraphChange, visuali
               ...edge,
               style: {
                 ...edge.style,
-                ...((visualization.currentEdge === edge.id || visualization.currentEdgeIds.includes(edge.id)) ? { stroke: '#ca8a04', strokeWidth: 3 } : {}),
+                ...(visualization.selectedEdgeIds.has(edge.id)
+                  ? { stroke: '#16a34a', strokeWidth: 3 }
+                  : (visualization.currentEdge === edge.id || visualization.currentEdgeIds.includes(edge.id) || visualization.candidateEdgeIds.has(edge.id))
+                    ? { stroke: '#ca8a04', strokeWidth: 3 } : {}),
               },
               markerEnd: directed ? { type: MarkerType.ArrowClosed } : undefined,
             }))}

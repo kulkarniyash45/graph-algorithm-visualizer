@@ -1,4 +1,4 @@
-export default function InfoPanel({ matrix = [], matrixLabels = [], matrixNodeIds = [], matrixCell = null, intermediateNode = null, pass = 0, maxPasses = 0, phase = '', warning = '', distances = new Map(), predecessors = new Map(), queue = [], traversalOrder = [], algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
+export default function InfoPanel({ selectedEdges = [], totalWeight = 0, matrix = [], matrixLabels = [], matrixNodeIds = [], matrixCell = null, intermediateNode = null, pass = 0, maxPasses = 0, phase = '', warning = '', distances = new Map(), predecessors = new Map(), queue = [], traversalOrder = [], algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
   return (
     <aside aria-label="Algorithm information and execution state" className="min-h-0 min-w-0 space-y-4 lg:space-y-5 lg:overflow-y-auto">
       <section aria-labelledby="info-heading" className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -31,6 +31,16 @@ export default function InfoPanel({ matrix = [], matrixLabels = [], matrixNodeId
             </div>
           ))}
         </dl>
+        {algorithm.id === 'prim' && totalSteps > 0 && (
+          <div className="mt-5 text-xs">
+            <h3 className="font-semibold text-slate-700">Selected {warning ? 'component' : 'MST'} edges</h3>
+            <ul className="mt-2 space-y-1">
+              {selectedEdges.map((edge) => <li key={edge.edgeId}>{edge.source} - {edge.target}: {edge.weight}</li>)}
+            </ul>
+            <p className="mt-2 font-semibold">Total weight: {totalWeight}</p>
+            <p className="mt-2 text-slate-500">Yellow edges are candidates; green edges are selected.</p>
+          </div>
+        )}
         {algorithm.id === 'floyd-warshall' && matrix.length > 0 && (
           <div className="mt-5 overflow-x-auto text-xs">
             <h3 className="font-semibold text-slate-700">{warning ? 'Provisional distance matrix' : 'Distance matrix'}</h3>

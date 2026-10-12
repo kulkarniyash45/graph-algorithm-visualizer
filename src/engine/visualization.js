@@ -2,7 +2,7 @@
 export function getVisualizationState(events, step) {
   const state = {
     visitedNodeIds: new Set(), checkedEdgeIds: new Set(), discoveredNodeIds: new Set(),
-    currentNode: null, currentEdge: null, currentEvent: null, queue: [], traversalOrder: [], distances: new Map(), predecessors: new Map(), pass: 0, maxPasses: 0, phase: '', warning: '', matrix: [], matrixNodeIds: [], matrixLabels: [], intermediateNode: null, matrixCell: null, currentEdgeIds: [],
+    currentNode: null, currentEdge: null, currentEvent: null, queue: [], traversalOrder: [], distances: new Map(), predecessors: new Map(), pass: 0, maxPasses: 0, phase: '', warning: '', matrix: [], matrixNodeIds: [], matrixLabels: [], intermediateNode: null, matrixCell: null, currentEdgeIds: [], candidateEdgeIds: new Set(), selectedEdgeIds: new Set(), selectedEdges: [], totalWeight: 0,
   };
   for (const event of events.slice(0, step)) {
     state.currentEvent = event.type;
@@ -43,6 +43,20 @@ export function getVisualizationState(events, step) {
       state.matrixCell = { i: event.i, j: event.j, k: event.k, updated: event.type === 'UPDATE_MATRIX_DISTANCE' };
       state.currentEdgeIds = event.edgeIds ?? [];
       if (event.type === 'UPDATE_MATRIX_DISTANCE') state.matrix[event.i][event.j] = event.distance;
+    } else if (event.type === 'CANDIDATE_EDGE') {
+      state.candidateEdgeIds.add(event.edgeId);
+      state.currentEdge = event.edgeId;
+      state.currentNode = event.source;
+    } else if (event.type === 'SELECT_EDGE') {
+      state.candidateEdgeIds.delete(event.edgeId);
+      state.selectedEdgeIds.add(event.edgeId);
+      state.selectedEdges.push({ edgeId: event.edgeId, source: event.source, target: event.target, weight: event.weight });
+      state.totalWeight = event.totalWeight;
+      state.currentEdge = event.edgeId;
+    } else if (event.type === 'REJECT_EDGE') {
+      state.candidateEdgeIds.delete(event.edgeId);
+    } else if (event.type === 'DISCONNECTED_GRAPH') {
+      state.warning = event.message;
     } else if (event.type === 'QUEUE_SNAPSHOT') {
       state.queue = [...event.queue];
     }
