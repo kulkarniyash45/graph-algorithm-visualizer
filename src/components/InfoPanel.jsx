@@ -1,4 +1,4 @@
-export default function InfoPanel({ distances = new Map(), predecessors = new Map(), queue = [], traversalOrder = [], algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
+export default function InfoPanel({ matrix = [], matrixLabels = [], matrixNodeIds = [], matrixCell = null, intermediateNode = null, pass = 0, maxPasses = 0, phase = '', warning = '', distances = new Map(), predecessors = new Map(), queue = [], traversalOrder = [], algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
   return (
     <aside aria-label="Algorithm information and execution state" className="min-h-0 min-w-0 space-y-4 lg:space-y-5 lg:overflow-y-auto">
       <section aria-labelledby="info-heading" className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -13,6 +13,10 @@ export default function InfoPanel({ distances = new Map(), predecessors = new Ma
           <h2 id="state-heading" className="text-sm font-semibold">Execution state</h2>
           <span role="status" className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-500">{status}</span>
         </div>
+        {algorithm.id === 'bellman-ford' && totalSteps > 0 && (
+          <p className="mt-4 text-xs text-slate-600">Pass {pass} / {maxPasses} {phase && '(' + phase + ')'}</p>
+        )}
+        {warning && <p role="alert" className="mt-4 text-xs text-red-600">{warning}</p>}
         <dl className="mt-5 space-y-4 text-xs">
           {[
             ['Step', `${currentStep} / ${totalSteps}`],
@@ -27,9 +31,24 @@ export default function InfoPanel({ distances = new Map(), predecessors = new Ma
             </div>
           ))}
         </dl>
-        {algorithm.id === 'dijkstra' && distances.size > 0 && (
+        {algorithm.id === 'floyd-warshall' && matrix.length > 0 && (
+          <div className="mt-5 overflow-x-auto text-xs">
+            <h3 className="font-semibold text-slate-700">{warning ? 'Provisional distance matrix' : 'Distance matrix'}</h3>
+            <p className="mt-2">Intermediate: {matrixLabels[matrixNodeIds.indexOf(intermediateNode)] ?? '-'}</p>
+            <table className="mt-2 w-full text-center">
+              <thead><tr><th scope="col">From / To</th>{matrixLabels.map((label, j) => <th scope="col" key={matrixNodeIds[j]} className="p-1">{label}</th>)}</tr></thead>
+              <tbody>{matrix.map((row, i) => (
+                <tr key={matrixNodeIds[i]}>
+                  <th scope="row" className="p-1">{matrixLabels[i]}</th>
+                  {row.map((distance, j) => <td key={matrixNodeIds[j]} className={'p-1 ' + (matrixCell?.i === i && matrixCell?.j === j ? matrixCell.updated ? 'bg-green-100' : 'bg-yellow-100' : '')}>{distance === Infinity ? '\u221e' : distance}</td>)}
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        )}
+        {(algorithm.id === 'dijkstra' || algorithm.id === 'bellman-ford') && distances.size > 0 && (
           <div className="mt-5 text-xs">
-            <h3 className="font-semibold text-slate-700">Shortest distances</h3>
+            <h3 className="font-semibold text-slate-700">{warning ? 'Provisional distances' : 'Shortest distances'}</h3>
             <table className="mt-2 w-full text-left">
               <thead><tr><th scope="col">Node</th><th scope="col">Distance</th><th scope="col">Previous</th></tr></thead>
               <tbody>
@@ -44,7 +63,7 @@ export default function InfoPanel({ distances = new Map(), predecessors = new Ma
             </table>
           </div>
         )}
-        <div className="mt-5 rounded-lg border border-dashed border-slate-200 p-3 text-xs leading-5 text-slate-400">{totalSteps ? 'Highlighted nodes have been visited. Highlighted edges have been checked. Use the controls to explore each event.' : 'Select BFS, DFS or Dijkstra and choose Run to start a visualization.'}</div>
+        <div className="mt-5 rounded-lg border border-dashed border-slate-200 p-3 text-xs leading-5 text-slate-400">{totalSteps ? 'Highlighted nodes have been visited. Highlighted edges have been checked. Use the controls to explore each event.' : 'Select an implemented algorithm and choose Run to start a visualization.'}</div>
       </section>
     </aside>
   );

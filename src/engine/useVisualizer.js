@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { bfs } from '../algorithms/bfs.js';
 import { dfs } from '../algorithms/dfs.js';
 import { dijkstra } from '../algorithms/dijkstra.js';
+import { bellmanFord } from '../algorithms/bellmanFord.js';
+import { floydWarshall } from '../algorithms/floydWarshall.js';
 import { toAdjacencyList } from '../utils/graphUtils.js';
 import { getVisualizationState } from './visualization.js';
 
@@ -55,7 +57,7 @@ export function useVisualizer(speed = 1) {
 
   const visualization = useMemo(() => {
     const state = getVisualizationState(events, step);
-    if (complete) { state.currentNode = null; state.currentEdge = null; }
+    if (complete) { state.currentNode = null; state.currentEdge = null; state.currentEdgeIds = []; }
     return state;
   }, [events, step, complete]);
 
@@ -66,9 +68,9 @@ export function useVisualizer(speed = 1) {
       reset();
       try {
         if (!graph.nodes.length) throw new Error('Add a node before running an algorithm.');
-        const algorithm = algorithmId === 'bfs' ? bfs : algorithmId === 'dfs' ? dfs : algorithmId === 'dijkstra' ? dijkstra : null;
-        if (!algorithm) throw new Error('Choose BFS, DFS or Dijkstra to run.');
-        const result = algorithm(toAdjacencyList(graph), startNodeId);
+        const algorithm = algorithmId === 'bfs' ? bfs : algorithmId === 'dfs' ? dfs : algorithmId === 'dijkstra' ? dijkstra : algorithmId === 'bellman-ford' ? bellmanFord : algorithmId === 'floyd-warshall' ? floydWarshall : null;
+        if (!algorithm) throw new Error('Choose an implemented algorithm to run.');
+        const result = algorithmId === 'floyd-warshall' ? floydWarshall(graph) : algorithm(toAdjacencyList(graph), startNodeId);
         setEvents(result.events);
         setPlaying(true);
       } catch (cause) {
