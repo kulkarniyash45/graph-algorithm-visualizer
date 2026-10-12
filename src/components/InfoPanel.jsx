@@ -1,4 +1,4 @@
-export default function InfoPanel({ algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
+export default function InfoPanel({ distances = new Map(), predecessors = new Map(), queue = [], traversalOrder = [], algorithm, status = 'Idle', currentStep = 0, totalSteps = 0, currentNode = '—', currentEvent = '—' }) {
   return (
     <aside aria-label="Algorithm information and execution state" className="min-h-0 min-w-0 space-y-4 lg:space-y-5 lg:overflow-y-auto">
       <section aria-labelledby="info-heading" className="rounded-2xl border border-slate-200 bg-white p-5">
@@ -18,6 +18,8 @@ export default function InfoPanel({ algorithm, status = 'Idle', currentStep = 0,
             ['Step', `${currentStep} / ${totalSteps}`],
             ['Current node', currentNode],
             ['Current event', currentEvent],
+            ['Queue', queue.join(' ? ') || '?'],
+            ['Traversal order', traversalOrder.join(' ? ') || '?'],
           ].map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-3">
               <dt className="text-slate-500">{label}</dt>
@@ -25,7 +27,24 @@ export default function InfoPanel({ algorithm, status = 'Idle', currentStep = 0,
             </div>
           ))}
         </dl>
-        <div className="mt-5 rounded-lg border border-dashed border-slate-200 p-3 text-xs leading-5 text-slate-400">{totalSteps ? 'Highlighted nodes have been visited. Highlighted edges have been checked. Use the controls to explore each event.' : 'Select BFS and choose Run BFS to start a visualization.'}</div>
+        {algorithm.id === 'dijkstra' && distances.size > 0 && (
+          <div className="mt-5 text-xs">
+            <h3 className="font-semibold text-slate-700">Shortest distances</h3>
+            <table className="mt-2 w-full text-left">
+              <thead><tr><th scope="col">Node</th><th scope="col">Distance</th><th scope="col">Previous</th></tr></thead>
+              <tbody>
+                {[...distances].map(([nodeId, distance]) => (
+                  <tr key={nodeId}>
+                    <th scope="row" className="py-1 font-normal">{nodeId}</th>
+                    <td>{distance === Infinity ? 'Unreachable' : distance}</td>
+                    <td>{predecessors.get(nodeId) ?? '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <div className="mt-5 rounded-lg border border-dashed border-slate-200 p-3 text-xs leading-5 text-slate-400">{totalSteps ? 'Highlighted nodes have been visited. Highlighted edges have been checked. Use the controls to explore each event.' : 'Select BFS, DFS or Dijkstra and choose Run to start a visualization.'}</div>
       </section>
     </aside>
   );

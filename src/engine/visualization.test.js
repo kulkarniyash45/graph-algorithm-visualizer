@@ -22,3 +22,34 @@ it('replays events and restores highlights when stepping back or resetting', () 
   expect(reset.currentEvent).toBeNull();
   expect(getVisualizationState([], 0)).toEqual(reset);
 });
+
+it('restores BFS queue, traversal, discoveries, and active edge from event prefixes', () => {
+  const events = [
+    { type: 'DISCOVER_NODE', nodeId: 'a' },
+    { type: 'QUEUE_SNAPSHOT', queue: ['a'] },
+    { type: 'QUEUE_SNAPSHOT', queue: [] },
+    { type: 'VISIT_NODE', nodeId: 'a' },
+    { type: 'CHECK_EDGE', edgeId: 'ab', source: 'a', target: 'b' },
+    { type: 'DISCOVER_NODE', nodeId: 'b' },
+    { type: 'QUEUE_SNAPSHOT', queue: ['b'] },
+    { type: 'QUEUE_SNAPSHOT', queue: [] },
+    { type: 'VISIT_NODE', nodeId: 'b' },
+  ];
+  const final = getVisualizationState(events, events.length);
+  expect(final.traversalOrder).toEqual(['a', 'b']);
+  expect(final.queue).toEqual([]);
+  const earlier = getVisualizationState(events, 5);
+  expect(earlier.traversalOrder).toEqual(['a']);
+  expect([...earlier.visitedNodeIds]).toEqual(['a']);
+  expect([...earlier.discoveredNodeIds]).toEqual(['a']);
+  expect(earlier.currentNode).toBe('a');
+  expect(earlier.currentEdge).toBe('ab');
+  expect(getVisualizationState(events, 7).queue).toEqual(['b']);
+  const reset = getVisualizationState(events, 0);
+  expect(reset.queue).toEqual([]);
+  expect(reset.traversalOrder).toEqual([]);
+  expect(reset.currentNode).toBeNull();
+  const snapshot = getVisualizationState(events, 2);
+  snapshot.queue.push('changed');
+  expect(events[1].queue).toEqual(['a']);
+});
