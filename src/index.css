@@ -1,1 +1,28 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
+
+:root {
+  font-family: Inter, "Segoe UI", sans-serif;
+  color-scheme: dark;
+  background: #070B17;
+}
+body { margin: 0; }
+.graphos {
+  background-image: radial-gradient(ellipse at 45% 0%, #14285660, transparent 55%);
+}
+.glass-panel {
+  border: 1px solid #60a5fa26;
+  background: linear-gradient(135deg, #132039b8, #0d1427d9);
+  box-shadow: 0 12px 36px #00000020, inset 0 1px 0 #ffffff04;
+  backdrop-filter: blur(16px);
+}
+button, select, input { transition: background-color 160ms, border-color 160ms, box-shadow 160ms; }
+button:not(:disabled):hover { border-color: #38bdf870; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid #22d3ee; outline-offset: 3px; }
+select { background-color: #101a30; color: #dbeafe; }
+.graphos .react-flow__handle { width: 8px; height: 8px; background: #22d3ee; border-color: #0b1122; }
+.graphos .react-flow__node.selected { outline: 2px solid #a78bfa; outline-offset: 4px; }
+.graphos .react-flow__edge.selected .react-flow__edge-path { stroke: #a78bfa; }
+.graphos .react-flow__attribution { background: #101a30; color: #94a3b8; }
+.graphos table th, .graphos table td { border-bottom: 1px solid #60a5fa15; padding: 6px; }
+* { scrollbar-width: thin; scrollbar-color: #29466c #0b1122; }
+@media (prefers-reduced-motion: reduce) { button, select, input { transition: none; } }

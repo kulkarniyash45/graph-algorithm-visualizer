@@ -63,7 +63,7 @@ export function useVisualizer(speed = 1) {
   }, [events, step, complete]);
 
   return {
-    visualization, step, totalSteps: events.length, error,
+    visualization, events, step, totalSteps: events.length, error,
     status: !events.length ? 'Idle' : complete ? 'Complete' : playing ? 'Playing' : 'Paused',
     run(graph, startNodeId, algorithmId = 'bfs') {
       reset();
@@ -86,6 +86,7 @@ export function useVisualizer(speed = 1) {
       setPlaying(true);
     },
     pause,
+    seek(value) { pause(); setStep(Math.max(0, Math.min(events.length, Math.round(value)))); },
     previous() { pause(); setStep((value) => Math.max(0, value - 1)); },
     next() { pause(); setStep((value) => Math.min(events.length, value + 1)); },
     reset,
